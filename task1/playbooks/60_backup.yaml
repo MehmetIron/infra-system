@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - ./10_vars.yaml
+
+  tasks:
+    - name: Create a backup directory
+      file:
+        path: "/var/lib/{{ db_name }}/backups/uploads/{{ backup_file }}"
+        mode: 0777
+        owner: "{{ db_user }}"
+        state: directory
+
+    - name: Back up the database
+      become: yes
+      shell: sudo -u postgres pg_dump {{ db_name }} > "/var/lib/{{ db_name }}/backups/uploads/{{ backup_file }}.dump"
+
+    - name: Restore the database
+      postgresql_db:
+        state: restore
+        name: "{{ db_name }}"
+        target: "/var/lib/{{ db_name }}/backups/uploads/{{ backup_file }}.dump"
+      become: yes
+      become_user: postgres
