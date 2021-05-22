@@ -1,0 +1,7 @@
+[centos]
+node1 ansible_host=3.86.108.221 ansible_user=ec2-user
+node2 ansible_host=54.91.45.168 ansible_user=ec2-user
+node3 ansible_host=3.84.213.84 ansible_user=ec2-user
+
+[all:vars]
+ansible_ssh_private_key_file=/home/ec2-user/mehmet.pem

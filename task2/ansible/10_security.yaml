@@ -1,0 +1,16 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Disable Selinux
+      selinux:  
+        state: disabled
+
+    - name: Disable & Stop Dynamic System Tuning Daemon (tuned)
+      systemd:
+        name: tuned
+        state: stopped
+        enabled: false
+
+    - name: Rebooting
+      reboot: 

@@ -1,0 +1,90 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: Grab pvs
+      shell: lsscsi | grep "VBOX HARDDISK" | grep -v "0:0:0" | awk '{print $7}'
+      register: scsi_info
+    
+    - name: Create a partition 
+      parted:
+        device: "{{ item }}"
+        label: gpt
+        number: 1
+        state: present
+      with_items: "{{scsi_info.stdout_lines}}"
+      register: pvs_info
+
+    - name: Create a new volume group
+      lvg:
+        vg: vg_storage
+        pvs: /dev/sdb1
+        state: present
+     
+    - name: Create lots of logical volumes
+      lvol:
+        vg: vg_storage
+        lv: " {{ item.name }}"
+        size: "{{ item.size }}" 
+      with_items:
+        - name: minio1_lv
+          size: 600
+        - name: minio2_lv
+          size: 600
+        - name: minio3_lv
+          size: 600
+        - name: minio4_lv
+          size: 600
+        - name: minio5_lv
+          size: 600
+        - name: minio6_lv
+          size: 600
+        - name: minio7_lv
+          size: 600
+        - name: minio8_lv
+          size: 800
+
+    - name: Create xfs file systems
+      filesystem:
+        fstype: xfs
+        dev: "/dev/mapper/vg_storage-{{ item }}"
+      with_items:
+        - minio1_lv
+        - minio2_lv
+        - minio3_lv
+        - minio4_lv
+        - minio5_lv
+        - minio6_lv 
+        - minio7_lv
+        - minio8_lv
+      
+    - name: Mount file system
+      mount:
+        fstype: xfs
+        path: "/mnt/disks/{{ item.mount_point }}"
+        src: "/dev/mapper/vg_storage-{{ item.lvol }}"
+        opts: noatime
+        state: mounted
+      with_items:
+        - lvol: minio1_lv
+          mount_point: minio1
+        - lvol: minio2_lv
+          mount_point: minio2
+        - lvol: minio3_lv
+          mount_point: minio3
+        - lvol: minio4_lv
+          mount_point: minio4
+        - lvol: minio5_lv
+          mount_point: minio5
+        - lvol: minio6_lv
+          mount_point: minio6
+        - lvol: minio7_lv
+          mount_point: minio7
+        - lvol: minio8_lv
+          mount_point: minio8
+
+    - name: Rebooting...
+      reboot:
+
+    - shell: df -kh
