@@ -1,7 +1,8 @@
 ---
-- hosts: all
+- name: "Install Minio"
+  hosts: all
   become: yes
-  vars:
-    - ../vars/main.yml     
   roles:
-    - { role: easkay.minio }
+    - { role: atosatto.minio }
+  vars:
+    minio_server_datadirs: [ "/minio-test" ]
